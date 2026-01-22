@@ -1,183 +1,84 @@
-# ProyectoRAG - Sistema de Recomendación de Productos con IA
+🤖 ProyectoRAG: Recomendador Inteligente para E-commerce
+Este proyecto implementa un sistema de Generación Aumentada por Recuperación (RAG) que permite consultar un catálogo de productos mediante lenguaje natural. A diferencia de una búsqueda tradicional por palabras clave, este sistema entiende la intención del usuario y genera una respuesta amable y personalizada.
 
-Un sistema inteligente de búsqueda y recomendación de productos basado en **RAG (Retrieval-Augmented Generation)** que utiliza embeddings vectoriales y modelos de lenguaje para entender consultas naturales.
+🎯 Capacidades del Sistema
+Memoria Semántica: Convierte las descripciones de productos y precios en vectores numéricos.
 
-## 🎯 ¿Qué es este proyecto?
+Búsqueda Contextual: Encuentra productos no solo por su nombre, sino por su utilidad (ej: "algo para el calor").
 
-Este proyecto implementa un **sistema RAG** que:
+Razonamiento con LLM: Utiliza Llama2 para explicar por qué esos productos específicos encajan con la duda del usuario.
 
-1. **Convierte productos a vectores** usando embeddings de `sentence-transformers`
-2. **Busca productos similares** a la consulta del usuario usando búsqueda vectorial con ChromaDB
-3. **Genera recomendaciones personalizadas** usando un LLM (Llama2 con Ollama)
+🛠️ Tecnologías Utilizadas
+LangChain (v0.3+): Orquestador del pipeline de IA (usando sintaxis LCEL).
 
-### Flujo completo:
+Ollama: Servidor local para correr modelos de lenguaje (LLM).
 
-```
-Pregunta del usuario
-    ↓
-Embeddings (texto → números)
-    ↓
-Búsqueda vectorial (encontrar productos similares)
-    ↓
-LLM (generar respuesta natural)
-    ↓
-Recomendación personalizada
-```
+ChromaDB: Base de datos vectorial persistente.
 
-## 🚀 Requisitos
+HuggingFace: Modelo de embeddings all-MiniLM-L6-v2.
 
-- Python 3.9+
-- Ollama (para el LLM)
-- Las librerías en `requirements.txt`
+SQLite & Pandas: Gestión de la base de datos relacional original.
 
-## 📦 Instalación
+🚀 Instalación y Configuración
+1. Clonar y Preparar el Entorno
+Bash
 
-### 1. Clonar el repositorio
-
-```bash
 git clone https://github.com/TU_USUARIO/ProyectoRAG.git
 cd ProyectoRAG
-```
 
-### 2. Crear entorno virtual
+# Crear entorno virtual
+python3 -m venv .venv
+source .venv/bin/activate  # En Windows: .venv\Scripts\activate
 
-```bash
-python -m venv .venv
-source .venv/bin/activate  # En macOS/Linux
-# o
-.venv\Scripts\activate  # En Windows
-```
-
-### 3. Instalar librerías
-
-```bash
+# Instalar dependencias actualizadas
 pip install -r requirements.txt
-```
+2. Configurar el "Cerebro" (Ollama)
+Asegúrate de tener Ollama instalado y ejecutándose:
 
-### 4. Instalar Ollama
+Bash
 
-Descarga Ollama desde: https://ollama.ai
-
-Luego, inicia el servidor:
-
-```bash
-ollama serve
-```
-
-En otra terminal, descarga el modelo Llama2:
-
-```bash
 ollama pull llama2
-```
+3. Preparar los Datos
+Si es la primera vez que lo usas, crea la base de datos de productos:
 
-## 🎮 Uso
+Bash
 
-### Ejecutar el script
+python setup_db.py
+🎮 Funcionamiento
+Ejecuta el recomendador:
 
-```bash
+Bash
+
 python ia_tienda.py
-```
+¿Cómo funciona internamente?
+El sistema sigue la nueva sintaxis de LangChain (LCEL):
 
-### Modificar la pregunta
+Retrieval: Busca los k productos más cercanos en la base de datos vectorial chroma_db/.
 
-Edita la línea en `ia_tienda.py`:
+Augment: Inyecta esos productos y el precio en un PromptTemplate.
 
-```python
-pregunta = "ropa para hacer deporte y correr cuando hace sol"
-```
+Generate: Envía todo a Llama2 mediante chain.invoke() para obtener la respuesta final.
 
-Cambia el texto a tu consulta deseada.
+📂 Estructura del Proyecto
+Plaintext
 
-## 📂 Estructura del proyecto
-
-```
 ProyectoRAG/
-├── ia_tienda.py          # Script principal con RAG
-├── setup_db.py           # Script para crear la BD de productos
-├── requirements.txt      # Dependencias
-├── ecommerce.db          # Base de datos (SQLite)
-├── data/                 # Datos del proyecto
-└── README.md             # Este archivo
-```
+├── ia_tienda.py         # Lógica RAG con LCEL e Invoke
+├── setup_db.py          # Script de creación de DB SQLite
+├── ecommerce.db         # Base de datos relacional de productos
+├── chroma_db/           # Carpeta de persistencia vectorial (auto-generada)
+├── requirements.txt     # Dependencias (versiones bloqueadas)
+└── .gitignore           # Archivo para ignorar .venv y bases de datos
+📝 Notas de Versión (v2.0)
+Migración de Librerías: Se ha actualizado de langchain_community a paquetes específicos como langchain-huggingface y langchain-ollama.
 
-## 🔧 Componentes principales
+Cambio a Invoke: Se eliminó el método depreciado .run() en favor de .invoke().
 
-### `ia_tienda.py`
+Persistencia: La base de datos vectorial ahora se guarda localmente para evitar regenerar embeddings en cada ejecución.
 
-- **HuggingFaceEmbeddings**: Convierte texto a vectores usando `sentence-transformers`
-- **ChromaDB**: Base de datos vectorial en memoria para búsqueda rápida
-- **Ollama (Llama2)**: LLM que genera respuestas naturales
-- **LLMChain**: Cadena que une prompt + LLM
+💡 ¿Qué sigue?
+Si te gusta este proyecto, puedes probar a:
 
-### `setup_db.py`
+Aumentar el valor de k en similarity_search para dar más opciones al LLM.
 
-Script para crear y poblar la base de datos de productos.
-
-## 🤔 ¿Qué es `k=2`?
-
-En `vectorstore.similarity_search(pregunta, k=2)`:
-
-- **k=2** → devuelve los 2 productos más similares a la pregunta
-- **k=1** → devuelve solo 1 resultado
-- **k=5** → devuelve los 5 más similares
-
-Los resultados se ordenan por **relevancia** (de mayor a menor similitud).
-
-## 📊 Ejemplo de uso
-
-**Entrada:**
-```
-Pregunta: "ropa para hacer deporte y correr cuando hace sol"
-```
-
-**Proceso:**
-1. Se convierte la pregunta a vector
-2. Se buscan los 2 productos más similares
-3. El LLM genera una recomendación personalizada
-
-**Salida:**
-```
-=== RESPUESTA DEL LLM ===
-Para correr cuando hace sol, te recomiendo la Gorra Running porque 
-tiene material transpirable que mantiene tu cabeza fresca. La Camiseta 
-Eco es perfecta porque el algodón orgánico es cómodo y respirable...
-```
-
-## 🛠️ Tecnologías utilizadas
-
-- **Python 3.9+**
-- **LangChain** - Framework para IA
-- **sentence-transformers** - Embeddings de texto
-- **ChromaDB** - Base de datos vectorial
-- **Ollama + Llama2** - LLM local gratuito
-- **pandas** - Manipulación de datos
-
-## 📝 Licencia
-
-Este proyecto es de código abierto.
-
-## 🤝 Contribuciones
-
-Si quieres mejorar el proyecto, ¡adelante! Puedes:
-
-1. Hacer un fork del repositorio
-2. Crear una rama con tu mejora
-3. Hacer un commit con tus cambios
-4. Hacer push y crear una Pull Request
-
-## ❓ Preguntas frecuentes
-
-**¿Por qué tarda en la primera ejecución?**
-
-Porque descarga el modelo de embeddings (~100MB) la primera vez.
-
-**¿Puedo usar otro LLM?**
-
-Sí, puedes cambiar `Ollama(model="llama2")` por:
-- `OpenAI()` (requiere API key)
-- `HuggingFaceLLM()` (otros modelos open-source)
-
-**¿Funciona sin internet?**
-
-Sí, una vez que tengas Ollama y los modelos descargados.
-
+Cambiar el modelo en Ollama (ej: mistral o llama3) para comparar respuestas.
