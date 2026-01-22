@@ -1,84 +1,148 @@
-🤖 ProyectoRAG: Recomendador Inteligente para E-commerce
-Este proyecto implementa un sistema de Generación Aumentada por Recuperación (RAG) que permite consultar un catálogo de productos mediante lenguaje natural. A diferencia de una búsqueda tradicional por palabras clave, este sistema entiende la intención del usuario y genera una respuesta amable y personalizada.
+# Proyecto RAG - Sistema de Recomendación de Productos
 
-🎯 Capacidades del Sistema
-Memoria Semántica: Convierte las descripciones de productos y precios en vectores numéricos.
+Un sistema inteligente de búsqueda y recomendación de productos basado en **Retrieval-Augmented Generation (RAG)** que utiliza embeddings vectoriales y un modelo de lenguaje (LLM) para proporcionar recomendaciones personalizadas.
 
-Búsqueda Contextual: Encuentra productos no solo por su nombre, sino por su utilidad (ej: "algo para el calor").
+## 🎯 ¿Qué es este proyecto?
 
-Razonamiento con LLM: Utiliza Llama2 para explicar por qué esos productos específicos encajan con la duda del usuario.
+Este proyecto implementa un asistente de IA para una tienda que:
 
-🛠️ Tecnologías Utilizadas
-LangChain (v0.3+): Orquestador del pipeline de IA (usando sintaxis LCEL).
+1. **Entiende preguntas en lenguaje natural** - No necesita palabras clave exactas
+2. **Busca productos relevantes** - Utiliza embeddings para encontrar similitudes semánticas
+3. **Genera respuestas conversacionales** - Un LLM proporciona recomendaciones personalizadas
 
-Ollama: Servidor local para correr modelos de lenguaje (LLM).
+**Ejemplo:**
+```
+Usuario: "Busco ropa para hacer deporte cuando hace sol"
+Sistema: Encuentra la Gorra Running y la Camiseta Eco
+LLM: "Te recomiendo la Gorra Running porque tiene material transpirable 
+que mantiene tu cabeza fresca. La Camiseta Eco es perfecta porque..."
+```
 
-ChromaDB: Base de datos vectorial persistente.
+## 🔧 Tecnologías Utilizadas
 
-HuggingFace: Modelo de embeddings all-MiniLM-L6-v2.
+- **Embeddings**: `sentence-transformers` (all-MiniLM-L6-v2)
+- **Base de Datos Vectorial**: ChromaDB
+- **Framework**: LangChain
+- **LLM**: Ollama (Llama2)
+- **Datos**: Pandas
 
-SQLite & Pandas: Gestión de la base de datos relacional original.
+## 📋 Requisitos Previos
 
-🚀 Instalación y Configuración
-1. Clonar y Preparar el Entorno
-Bash
+- Python 3.9+
+- Ollama instalado (para el LLM)
+- Homebrew (opcional, pero recomendado en macOS)
 
-git clone https://github.com/TU_USUARIO/ProyectoRAG.git
+## 🚀 Instalación
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/tu-usuario/ProyectoRAG.git
 cd ProyectoRAG
+```
 
-# Crear entorno virtual
-python3 -m venv .venv
-source .venv/bin/activate  # En Windows: .venv\Scripts\activate
+### 2. Crear un entorno virtual
 
-# Instalar dependencias actualizadas
+```bash
+python -m venv .venv
+source .venv/bin/activate  # En macOS/Linux
+# o
+.venv\Scripts\activate  # En Windows
+```
+
+### 3. Instalar dependencias
+
+```bash
 pip install -r requirements.txt
-2. Configurar el "Cerebro" (Ollama)
-Asegúrate de tener Ollama instalado y ejecutándose:
+```
 
-Bash
+### 4. Instalar Ollama
 
+En macOS con Homebrew:
+```bash
+brew install ollama
+```
+
+O descárgalo desde: https://ollama.ai
+
+### 5. Descargar el modelo Llama2
+
+Abre una terminal y ejecuta:
+```bash
 ollama pull llama2
-3. Preparar los Datos
-Si es la primera vez que lo usas, crea la base de datos de productos:
+```
 
-Bash
+Luego inicia el servidor de Ollama (en otra terminal):
+```bash
+ollama serve
+```
 
-python setup_db.py
-🎮 Funcionamiento
-Ejecuta el recomendador:
+## 💻 Uso
 
-Bash
+Ejecuta el script principal:
 
+```bash
 python ia_tienda.py
-¿Cómo funciona internamente?
-El sistema sigue la nueva sintaxis de LangChain (LCEL):
+```
 
-Retrieval: Busca los k productos más cercanos en la base de datos vectorial chroma_db/.
+El script hará una búsqueda de ejemplo y mostrará:
+- Los productos encontrados
+- Una recomendación generada por el LLM
 
-Augment: Inyecta esos productos y el precio en un PromptTemplate.
+## 📁 Estructura del Proyecto
 
-Generate: Envía todo a Llama2 mediante chain.invoke() para obtener la respuesta final.
-
-📂 Estructura del Proyecto
-Plaintext
-
+```
 ProyectoRAG/
-├── ia_tienda.py         # Lógica RAG con LCEL e Invoke
-├── setup_db.py          # Script de creación de DB SQLite
-├── ecommerce.db         # Base de datos relacional de productos
-├── chroma_db/           # Carpeta de persistencia vectorial (auto-generada)
-├── requirements.txt     # Dependencias (versiones bloqueadas)
-└── .gitignore           # Archivo para ignorar .venv y bases de datos
-📝 Notas de Versión (v2.0)
-Migración de Librerías: Se ha actualizado de langchain_community a paquetes específicos como langchain-huggingface y langchain-ollama.
+├── ia_tienda.py          # Script principal con el sistema RAG
+├── setup_db.py           # Script para inicializar la BD (si aplica)
+├── requirements.txt      # Dependencias del proyecto
+├── ecommerce.db          # Base de datos SQLite (generada)
+├── data/                 # Carpeta con datos de productos
+└── README.md             # Este archivo
+```
 
-Cambio a Invoke: Se eliminó el método depreciado .run() en favor de .invoke().
+## 🔍 ¿Cómo funciona?
 
-Persistencia: La base de datos vectorial ahora se guarda localmente para evitar regenerar embeddings en cada ejecución.
+### Paso 1: Embeddings
+Las descripciones de productos se convierten a vectores numéricos usando `sentence-transformers`
 
-💡 ¿Qué sigue?
-Si te gusta este proyecto, puedes probar a:
+### Paso 2: Búsqueda Vectorial
+ChromaDB busca los `k` productos más similares al query del usuario usando similitud coseno
 
-Aumentar el valor de k en similarity_search para dar más opciones al LLM.
+### Paso 3: LLM
+Ollama (Llama2) toma los productos encontrados y genera una respuesta natural y personalizada
 
-Cambiar el modelo en Ollama (ej: mistral o llama3) para comparar respuestas.
+## 📝 Ejemplo de Uso
+
+```python
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain_community.llms import Ollama
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+
+# Crear embeddings
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
+# Crear base de datos vectorial
+textos = ["Producto 1", "Producto 2", "Producto 3"]
+vectorstore = Chroma.from_texts(textos, embeddings)
+
+# Buscar productos similares
+pregunta = "Tu pregunta aquí"
+resultados = vectorstore.similarity_search(pregunta, k=2)
+
+# Generar respuesta con LLM
+llm = Ollama(model="llama2")
+# ... crear prompt y chain ...
+respuesta = chain.run(...)
+```
+
+## 🤝 Contribuciones
+
+¡Las contribuciones son bienvenidas! Siéntete libre de hacer fork del proyecto y enviar pull requests.
+
+---
+
+**Nota**: Este es un proyecto educativo para entender cómo funcionan los sistemas RAG con LLMs.
+EOF
